@@ -26,21 +26,35 @@
         <!-- 附加費用 -->
         <h2 class="text-lg font-semibold mb-2 text-gray-700">附加費用</h2>
         <div class="space-y-3 mb-6">
+            <!-- 手術 -->
             <label class="flex items-center gap-2">
-                <input type="checkbox" v-model="addonsEnabled.surgery" class="accent-purple-600"> 手術<p class="text-sm text-gray-400">視傷情 5000~10000</p>
+                <input type="checkbox" v-model="addonsEnabled.surgery" class="accent-purple-600"> 手術
+                <span class="text-sm text-gray-400 ml-2">視傷情 5000~10000</span>
             </label>
             <input type="number" v-model.number="addons.surgery" placeholder="視傷情5000~10000"
-                class="border rounded-lg p-2 w-40 mb-1 focus:ring-2 focus:ring-purple-400" :disabled="!addonsEnabled.surgery">
-            
+                class="border rounded-lg p-2 w-40 mb-1 focus:ring-2 focus:ring-purple-400"
+                :disabled="!addonsEnabled.surgery">
 
+            <!-- 葡萄糖 -->
+            <label class="flex items-center gap-2">
+                <input type="checkbox" v-model="addonsEnabled.glucose" class="accent-blue-600"> 葡萄糖
+            </label>
 
-            <label class="flex items-center gap-2"><input type="checkbox" v-model="addonsEnabled.glucose"
-                    class="accent-blue-600"> 葡萄糖</label>
-            <input type="number" v-model.number="addons.glucoseValue" class="hidden" :disabled="!addonsEnabled.glucose">
-
-            <label class="flex items-center gap-2"><input type="checkbox" v-model="addonsEnabled.check"
-                    class="accent-blue-600"> 儀器檢查</label>
-            <input type="number" v-model.number="addons.checkValue" class="hidden" :disabled="!addonsEnabled.check">
+            <!-- 儀器檢查 -->
+            <label class="flex items-center gap-2">
+                <input type="checkbox" v-model="addonsEnabled.check" class="accent-blue-600"> 儀器檢查
+            </label>
+            <div v-if="addonsEnabled.check" class="ml-6 mt-2 space-y-1 text-gray-600">
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" v-model="addons.checkOptions.Xray" class="accent-blue-500"> X光
+                </label>
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" v-model="addons.checkOptions.MRI" class="accent-blue-500"> MRI
+                </label>
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" v-model="addons.checkOptions.CT" class="accent-blue-500"> CT
+                </label>
+            </div>
         </div>
 
         <!-- 商品費用 -->
@@ -65,6 +79,7 @@
                     :disabled="!productsEnabled.ext">
             </label>
         </div>
+
         <!-- 身分選擇 -->
         <h2 class="text-lg font-semibold mb-2 text-gray-700">身分折扣</h2>
         <select v-model.number="role" class="w-full border rounded-lg p-2 mb-6 focus:ring-2 focus:ring-blue-400">
@@ -93,7 +108,7 @@
             data() {
                 return {
                     basic: 0,
-                    addons: { surgery: 0, glucoseValue: 0, checkValue: 0 },
+                    addons: { surgery: 0, glucoseValue: 0, checkOptions: { Xray: false, MRI: false, CT: false } },
                     addonsEnabled: { surgery: false, glucose: false, check: false },
                     products: { bandValue: 0, herbValue: 0, extValue: 0 },
                     productsEnabled: { band: false, herb: false, ext: false },
@@ -104,22 +119,31 @@
             methods: {
                 calculate() {
                     let total = 0;
+
+                    // 基本費用
                     total += this.basic;
 
+                    // 附加費用
                     if (this.addonsEnabled.surgery) total += this.addons.surgery;
                     if (this.addonsEnabled.glucose) total += 2000;
-                    if (this.addonsEnabled.check) total += 3000;
+                    if (this.addonsEnabled.check) {
+                        if (this.addons.checkOptions.Xray) total += 3000;
+                        if (this.addons.checkOptions.MRI) total += 3000;
+                        if (this.addons.checkOptions.CT) total += 3000;
+                    }
 
+                    // 商品費用
                     if (this.productsEnabled.band) total += (this.products.bandValue || 0) * 800;
                     if (this.productsEnabled.herb) total += (this.products.herbValue || 0) * 1000;
                     if (this.productsEnabled.ext) total += (this.products.extValue || 0) * 2000;
 
+                    // 折扣
                     total = Math.round(total * this.role);
                     this.result = total;
                 },
                 reset() {
                     this.basic = 0;
-                    this.addons = { surgery: 0, glucoseValue: 0, checkValue: 0 };
+                    this.addons = { surgery: 0, glucoseValue: 0, checkOptions: { Xray: false, MRI: false, CT: false } };
                     this.addonsEnabled = { surgery: false, glucose: false, check: false };
                     this.products = { bandValue: 0, herbValue: 0, extValue: 0 };
                     this.productsEnabled = { band: false, herb: false, ext: false };
