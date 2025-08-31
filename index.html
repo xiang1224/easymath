@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>醫療費計算機</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen flex items-center justify-center p-6">
+    <div id="app" class="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8">
+        <h1 class="text-3xl font-extrabold mb-6 text-center text-blue-700">醫療費計算機</h1>
+
+        <!-- 基本費用 -->
+        <h2 class="text-lg font-semibold mb-2 text-gray-700">基本費用</h2>
+        <select v-model.number="basic" class="w-full border rounded-lg p-2 mb-6 focus:ring-2 focus:ring-blue-400">
+            <option value="0">請選擇</option>
+            <option value="5000">自行就醫</option>
+            <option value="5500">院外急救 - 南部 </option>
+            <option value="5800">院外急救 - 中部</option>
+            <option value="6000">院外急救 - 北部</option>
+        </select>
+
+        <!-- 附加費用 -->
+        <h2 class="text-lg font-semibold mb-2 text-gray-700">附加費用</h2>
+        <div class="space-y-3 mb-6">
+            <label class="flex items-center gap-2">
+                <input type="checkbox" v-model="addonsEnabled.surgery" class="accent-purple-600"> 手術<p class="text-sm text-gray-400">視傷情 5000~10000</p>
+            </label>
+            <input type="number" v-model.number="addons.surgery" placeholder="視傷情5000~10000"
+                class="border rounded-lg p-2 w-40 mb-1 focus:ring-2 focus:ring-purple-400" :disabled="!addonsEnabled.surgery">
+            
+
+
+            <label class="flex items-center gap-2"><input type="checkbox" v-model="addonsEnabled.glucose"
+                    class="accent-blue-600"> 葡萄糖</label>
+            <input type="number" v-model.number="addons.glucoseValue" class="hidden" :disabled="!addonsEnabled.glucose">
+
+            <label class="flex items-center gap-2"><input type="checkbox" v-model="addonsEnabled.check"
+                    class="accent-blue-600"> 儀器檢查</label>
+            <input type="number" v-model.number="addons.checkValue" class="hidden" :disabled="!addonsEnabled.check">
+        </div>
+
+        <!-- 商品費用 -->
+        <h2 class="text-lg font-semibold mb-2 text-gray-700">商品費用 (輸入數量)</h2>
+        <div class="space-y-3 mb-6">
+            <label class="flex items-center text-gray-600">
+                <input type="checkbox" v-model="productsEnabled.band" class="accent-green-600 mr-2"> 止血帶
+                <input type="number" v-model.number="products.bandValue" min="0"
+                    class="border rounded-lg p-2 w-24 ml-auto text-center focus:ring-2 focus:ring-blue-400"
+                    :disabled="!productsEnabled.band">
+            </label>
+            <label class="flex items-center text-gray-600">
+                <input type="checkbox" v-model="productsEnabled.herb" class="accent-green-600 mr-2"> 草本繃帶
+                <input type="number" v-model.number="products.herbValue" min="0"
+                    class="border rounded-lg p-2 w-24 ml-auto text-center focus:ring-2 focus:ring-blue-400"
+                    :disabled="!productsEnabled.herb">
+            </label>
+            <label class="flex items-center text-gray-600">
+                <input type="checkbox" v-model="productsEnabled.ext" class="accent-green-600 mr-2"> 滅火器
+                <input type="number" v-model.number="products.extValue" min="0"
+                    class="border rounded-lg p-2 w-24 ml-auto text-center focus:ring-2 focus:ring-blue-400"
+                    :disabled="!productsEnabled.ext">
+            </label>
+        </div>
+        <!-- 身分選擇 -->
+        <h2 class="text-lg font-semibold mb-2 text-gray-700">身分折扣</h2>
+        <select v-model.number="role" class="w-full border rounded-lg p-2 mb-6 focus:ring-2 focus:ring-blue-400">
+            <option value="1">市民 (原價)</option>
+            <option value="0.5">警員 (半價)</option>
+            <option value="0.8">朝酩 (8折)</option>
+            <option value="0.8">方花 (8折)</option>
+            <option value="0.7">車廠 (7折)</option>
+        </select>
+
+        <!-- 操作按鈕 -->
+        <div class="flex gap-4">
+            <button @click="calculate"
+                class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">計算金額</button>
+            <button @click="reset"
+                class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition">重置</button>
+        </div>
+
+        <!-- 結果顯示 -->
+        <div class="mt-6 text-center text-2xl font-bold text-purple-700">總金額：{{ result }}</div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        createApp({
+            data() {
+                return {
+                    basic: 0,
+                    addons: { surgery: 0, glucoseValue: 0, checkValue: 0 },
+                    addonsEnabled: { surgery: false, glucose: false, check: false },
+                    products: { bandValue: 0, herbValue: 0, extValue: 0 },
+                    productsEnabled: { band: false, herb: false, ext: false },
+                    role: 1,
+                    result: 0
+                };
+            },
+            methods: {
+                calculate() {
+                    let total = 0;
+                    total += this.basic;
+
+                    if (this.addonsEnabled.surgery) total += this.addons.surgery;
+                    if (this.addonsEnabled.glucose) total += 2000;
+                    if (this.addonsEnabled.check) total += 3000;
+
+                    if (this.productsEnabled.band) total += (this.products.bandValue || 0) * 800;
+                    if (this.productsEnabled.herb) total += (this.products.herbValue || 0) * 1000;
+                    if (this.productsEnabled.ext) total += (this.products.extValue || 0) * 2000;
+
+                    total = Math.round(total * this.role);
+                    this.result = total;
+                },
+                reset() {
+                    this.basic = 0;
+                    this.addons = { surgery: 0, glucoseValue: 0, checkValue: 0 };
+                    this.addonsEnabled = { surgery: false, glucose: false, check: false };
+                    this.products = { bandValue: 0, herbValue: 0, extValue: 0 };
+                    this.productsEnabled = { band: false, herb: false, ext: false };
+                    this.role = 1;
+                    this.result = 0;
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+
+</html>
