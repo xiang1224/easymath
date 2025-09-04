@@ -78,6 +78,12 @@
                     class="border rounded-lg p-2 w-24 ml-auto text-center focus:ring-2 focus:ring-blue-400"
                     :disabled="!productsEnabled.ext">
             </label>
+            <label class="flex items-center text-gray-600">
+                <input type="checkbox" v-model="productsEnabled.flashlight" class="accent-green-600 mr-2"> 手電筒
+                <input type="number" v-model.number="products.flashlightValue" min="0"
+                    class="border rounded-lg p-2 w-24 ml-auto text-center focus:ring-2 focus:ring-blue-400"
+                    :disabled="!productsEnabled.flashlight">
+            </label>
         </div>
 
         <!-- 身分選擇 -->
@@ -103,55 +109,47 @@
     </div>
 
     <script>
-        const { createApp } = Vue;
-        createApp({
-            data() {
-                return {
-                    basic: 0,
-                    addons: { surgery: 0, glucoseValue: 0, checkOptions: { Xray: false, MRI: false, CT: false } },
-                    addonsEnabled: { surgery: false, glucose: false, check: false },
-                    products: { bandValue: 0, herbValue: 0, extValue: 0 },
-                    productsEnabled: { band: false, herb: false, ext: false },
-                    role: 1,
-                    result: 0
-                };
-            },
-            methods: {
-                calculate() {
-                    let total = 0;
+            const { createApp } = Vue;
+                createApp({
+                    data() {
+                        return {
+                            basic: 0,
+                            addons: { surgery: 0, glucoseValue: 0, checkValue: 0 },
+                            addonsEnabled: { surgery: false, glucose: false, check: false },
+                            products: { bandValue: 0, herbValue: 0, extValue: 0, flashlightValue: 0 },
+                            productsEnabled: { band: false, herb: false, ext: false, flashlight: false },
+                            role: 1,
+                            result: 0
+                        };
+                    },
+                    methods: {
+                        calculate() {
+                            let total = 0;
+                            total += this.basic;
 
-                    // 基本費用
-                    total += this.basic;
+                            if (this.addonsEnabled.surgery) total += this.addons.surgery;
+                            if (this.addonsEnabled.glucose) total += 2000;
+                            if (this.addonsEnabled.check) total += 3000;
 
-                    // 附加費用
-                    if (this.addonsEnabled.surgery) total += this.addons.surgery;
-                    if (this.addonsEnabled.glucose) total += 2000;
-                    if (this.addonsEnabled.check) {
-                        if (this.addons.checkOptions.Xray) total += 3000;
-                        if (this.addons.checkOptions.MRI) total += 3000;
-                        if (this.addons.checkOptions.CT) total += 3000;
+                            if (this.productsEnabled.band) total += (this.products.bandValue || 0) * 800;
+                            if (this.productsEnabled.herb) total += (this.products.herbValue || 0) * 1000;
+                            if (this.productsEnabled.ext) total += (this.products.extValue || 0) * 2000;
+                            if (this.productsEnabled.flashlight) total += (this.products.flashlightValue || 0) * 2000;
+
+                            total = Math.round(total * this.role);
+                            this.result = total;
+                        },
+                        reset() {
+                            this.basic = 0;
+                            this.addons = { surgery: 0, glucoseValue: 0, checkValue: 0 };
+                            this.addonsEnabled = { surgery: false, glucose: false, check: false };
+                            this.products = { bandValue: 0, herbValue: 0, extValue: 0, flashlightValue: 0 };
+                            this.productsEnabled = { band: false, herb: false, ext: false, flashlight: false };
+                            this.role = 1;
+                            this.result = 0;
+                        }
                     }
-
-                    // 商品費用
-                    if (this.productsEnabled.band) total += (this.products.bandValue || 0) * 800;
-                    if (this.productsEnabled.herb) total += (this.products.herbValue || 0) * 1000;
-                    if (this.productsEnabled.ext) total += (this.products.extValue || 0) * 2000;
-
-                    // 折扣
-                    total = Math.round(total * this.role);
-                    this.result = total;
-                },
-                reset() {
-                    this.basic = 0;
-                    this.addons = { surgery: 0, glucoseValue: 0, checkOptions: { Xray: false, MRI: false, CT: false } };
-                    this.addonsEnabled = { surgery: false, glucose: false, check: false };
-                    this.products = { bandValue: 0, herbValue: 0, extValue: 0 };
-                    this.productsEnabled = { band: false, herb: false, ext: false };
-                    this.role = 1;
-                    this.result = 0;
-                }
-            }
-        }).mount('#app');
+                }).mount('#app');
     </script>
 </body>
 
